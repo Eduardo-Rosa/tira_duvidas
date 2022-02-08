@@ -11,4 +11,9 @@ app.get("/",(req, res) => {
     res.render("perguntar");
 });
 
+app.get("/home",(req, res) => {
+
+    res.render("index");
+});
+
 app.listen(8000,()=>{console.log("App rodando!");});
