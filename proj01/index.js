@@ -3,9 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const connection = require("./database/database");
 const Pergunta = require("./database/Pergunta");
-const res = require("express/lib/response");
-
-
+const Resposta = require("./database/Resposta");
 
 //Database
 connection
@@ -43,7 +41,6 @@ app.get("/perguntar",(req, res) => {
     res.render("perguntar");
 });
 
-
 app.post("/salvarpergunta",(req,res)=> {
     var titulo = req.body.titulo;
     var descricao = req.body.descricao;
@@ -61,13 +58,34 @@ app.get("/pergunta/:id", (req,res) =>{
     var id = req.params.id;
     Pergunta.findOne({
         where:{id:id}
-    }).then(pergunta =>{
+    }).then(pergunta => {
         if(pergunta != undefined){ //pergunta com id passado existe
-            res .render("pergunta");
+            Resposta.findAll({
+                where:{ perguntaId: pergunta.id},
+                order: [
+                    ['id', 'DESC']
+                ]
+            }).then(respostas => {
+                res .render("pergunta",{
+                    pergunta: pergunta,
+                    respostas: respostas
+                }); 
+            });
         }else{//id não existe
             res.redirect("/")
         }
     });
 });
+
+app.post("/responder", (req, res) => {
+    var corpo = req.body.corpo;
+    var perguntaId = req.body.pergunta;
+    Resposta.create({
+        corpo: corpo,
+        perguntaId: perguntaId
+    }).then(() =>{
+        res.redirect("/pergunta/"+perguntaId);//assim ficará a url => res.redirect("/pergunta/numPergunta")
+    });
+ });
 
 app.listen(8000,()=>{console.log("App rodando!");});
