@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const connection = require("./database/database");
 const Pergunta = require("./database/Pergunta");
+const res = require("express/lib/response");
 
 
 
@@ -27,8 +28,14 @@ app.use(bodyParser.json());
 
 //Rotas
 app.get("/",(req, res) => {
-
-    res.render("index");
+    //equivalente ao SELECT ALL no SQL
+    Pergunta.findAll({raw: true, order:[
+        ['id','DESC']
+    ]}).then(perguntas => {
+        res.render("index",{
+            perguntas:perguntas
+        });
+    });
 });
 
 app.get("/perguntar",(req, res) => {
@@ -48,6 +55,19 @@ app.post("/salvarpergunta",(req,res)=> {
     }).then(()=>{
         res.redirect("/");
     })
+});
+
+app.get("/pergunta/:id", (req,res) =>{
+    var id = req.params.id;
+    Pergunta.findOne({
+        where:{id:id}
+    }).then(pergunta =>{
+        if(pergunta != undefined){ //pergunta com id passado existe
+            res .render("pergunta");
+        }else{//id não existe
+            res.redirect("/")
+        }
+    });
 });
 
 app.listen(8000,()=>{console.log("App rodando!");});
